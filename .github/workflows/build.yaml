@@ -1,0 +1,79 @@
+name: Build 
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ dev ]
+    paths-ignore:
+      - "**.md"
+      - "**.ps1"
+      - ".editorconfig"
+      - "TestFiles/*"
+      - '**/*.gitignore'
+      - '**/*.gitattributes'
+      - '**/*.yml'
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# 最小权限：只读仓库内容
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    # 防止重复触发（例如 push 到 dev 同时触发 PR）
+    if: github.event_name != 'push' || github.event.pull_request == null
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: ./global.json
+
+      - name: Install WASM workload
+        run: dotnet workload install wasm-tools
+
+      # 还原依赖（针对 Web 项目，可根据实际情况改为解决方案或全部项目）
+      - name: Restore dependencies
+        run: dotnet restore Pkmds.Web/Pkmds.Web.csproj -p:SelfContained=true
+
+      # 构建 Web（Release 配置，不还原）
+      - name: Build Web
+        run: dotnet build Pkmds.Web/Pkmds.Web.csproj --configuration Release --no-restore
+
+      # 构建 Functions（Release 配置，不还原）
+      - name: Build Functions
+        run: dotnet build Pkmds.Functions/Pkmds.Functions.csproj --configuration Release --no-restore
+
+      # 运行测试（使用 --no-build 复用已有的编译结果，加速）
+      - name: Run tests
+        run: dotnet test Pkmds.Tests/Pkmds.Tests.csproj --configuration Release --no-build
+
+      # 发布 Web 项目（利用 --no-build 直接输出到 ./publish/web）
+      - name: Publish Web
+        run: dotnet publish Pkmds.Web/Pkmds.Web.csproj --configuration Release --no-build --output ./publish/web
+
+      # 发布 Functions 项目（利用 --no-build 直接输出到 ./publish/functions）
+      - name: Publish Functions
+        run: dotnet publish Pkmds.Functions/Pkmds.Functions.csproj --configuration Release --no-build --output ./publish/functions
+
+      # 上传 Web 工件，可在 Actions 页面下载
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pkmds-Web
+          path: ./publish/web
+
+      # 上传 Functions 工件
+      - name: Upload Functions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pkmds-Functions
+          path: ./publish/functions
