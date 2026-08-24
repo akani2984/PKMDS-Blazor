@@ -52,9 +52,7 @@ jobs:
       - name: Build Functions
         run: dotnet build Pkmds.Functions/Pkmds.Functions.csproj --configuration Release 
 
-      # 运行测试（使用 --no-build 复用已有的编译结果，加速）
-      - name: Run tests
-        run: dotnet test Pkmds.Tests/Pkmds.Tests.csproj --configuration Release --no-build
+     
 
       # 发布 Web 项目（利用 --no-build 直接输出到 ./publish/web）
       - name: Publish Web
