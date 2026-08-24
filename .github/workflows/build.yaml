@@ -56,11 +56,11 @@ jobs:
 
       # 发布 Web 项目（利用 --no-build 直接输出到 ./publish/web）
       - name: Publish Web
-        run: dotnet publish Pkmds.Web/Pkmds.Web.csproj --configuration Release --no-build --output ./publish/web
+        run: dotnet publish Pkmds.Web/Pkmds.Web.csproj --configuration Release  --output ./publish/web
 
       # 发布 Functions 项目（利用 --no-build 直接输出到 ./publish/functions）
       - name: Publish Functions
-        run: dotnet publish Pkmds.Functions/Pkmds.Functions.csproj --configuration Release --no-build --output ./publish/functions
+        run: dotnet publish Pkmds.Functions/Pkmds.Functions.csproj --configuration Release --output ./publish/functions
 
       # 上传 Web 工件，可在 Actions 页面下载
       - name: Upload Web artifact
