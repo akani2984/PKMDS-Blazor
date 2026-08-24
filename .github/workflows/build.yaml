@@ -50,7 +50,7 @@ jobs:
 
       # 构建 Functions（Release 配置，不还原）
       - name: Build Functions
-        run: dotnet build Pkmds.Functions/Pkmds.Functions.csproj --configuration Release --no-restore
+        run: dotnet build Pkmds.Functions/Pkmds.Functions.csproj --configuration Release 
 
       # 运行测试（使用 --no-build 复用已有的编译结果，加速）
       - name: Run tests
